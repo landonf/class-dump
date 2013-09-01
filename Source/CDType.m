@@ -340,13 +340,22 @@ static BOOL debugMerge = NO;
             }
             break;
             
-        case 'b':
+        case 'b': {
+            /* The NeXT bitfield encoding does not contain enough data to determine
+             * the actual type of bitfield element. We assume an int, unless the size
+             * exceeds 32-bits; this will allow the generated code to compile, even
+             * if the size of the enclosing structure is incorrect. */
+            NSString *type = @"int";
+            if ([_bitfieldSize intValue] > 32)
+                type = @"long long int";
+
             if (currentName == nil) {
                 // This actually compiles!
-                result = [NSString stringWithFormat:@"unsigned int :%@", _bitfieldSize];
+                result = [NSString stringWithFormat:@"unsigned %@ :%@", type, _bitfieldSize];
             } else
-                result = [NSString stringWithFormat:@"unsigned int %@:%@", currentName, _bitfieldSize];
+                result = [NSString stringWithFormat:@"unsigned %@ %@:%@", type, currentName, _bitfieldSize];
             break;
+        }
             
         case '[':
             if (currentName == nil)
